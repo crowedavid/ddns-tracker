@@ -6,12 +6,14 @@
 # Intended to track DDNS address changes over time for a list of
 # hosts and only recording changes from the last address.
 
-# Requires: cut, date, dig, grep, tail
+# Required utilities: cut, date, dig, grep, ping, tail, touch
 
 # VARIABLES
 
 site_list="ddns-tracker.conf"
 output_file="ddns-tracker.csv"
+#ping_host="google.com"
+ping_cmd="ping -W 10 -t 10 -c 2"
 
 #
 # FUNCTIONS
@@ -47,6 +49,7 @@ usage() {
     Options:
     -f [ sitefile ]         list of sites to check [default=$site_list]
     -o [ outfile ]          output filename [default=$output_file]
+    -p [ ping_host ]        ping host for connectivity test
     -h                      help
 
 EOF
@@ -57,13 +60,16 @@ EOF
 #
 
 if [ "$#" -ne 0 ]; then
-    while getopts "f:o:h" opt; do
+    while getopts "f:o:p:h" opt; do
         case $opt in
             "f")
                 site_list="$OPTARG"
                 ;;
             "o")
                 output_file="$OPTARG"
+                ;;
+            "p")
+                ping_host="$OPTARG"
                 ;;
             :)
                 echo "Option -$OPTARG requires an argument." >&2
@@ -104,6 +110,15 @@ if [ ! -r "$output_file" ]; then
         fi
     else
         echo "Can't read output file: $output_file"
+        exit 1
+    fi
+fi
+
+# perform ping test with short timers for connectivity and exit if fails
+if [ ! -z "$ping_host" ]; then
+    $ping_cmd $ping_host &> /dev/null
+    if [ "$?" != 0 ]; then
+        echo "Ping test failed: $ping_host"
         exit 1
     fi
 fi
