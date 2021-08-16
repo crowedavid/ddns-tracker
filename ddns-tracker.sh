@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 
-# ddns-address-tracker.sh
+# ddns-tracker.sh
 
 # Intended to track DDNS address changes over time for a list of
 # hosts and only recording changes from the last address.
