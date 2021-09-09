@@ -6,6 +6,10 @@
 # Intended to track DDNS address changes over time for a list of
 # hosts and only recording changes from the last address.
 
+# Updates:
+#   - added -q, quiet option. By default will now echo address changes to
+#     stdout
+
 # Required utilities: cut, date, dig, grep, ping, tail, touch
 
 # VARIABLES
@@ -14,6 +18,7 @@ site_list="ddns-tracker.conf"
 output_file="ddns-tracker.csv"
 #ping_host="google.com"
 ping_cmd="ping -W 10 -t 10 -c 2"
+quiet_updates=0
 
 #
 # FUNCTIONS
@@ -39,6 +44,9 @@ do_sites() {
         last_addr=$(last_address $site)
         if [[ "$last_addr" == "missing" ]] || [[ "$current_addr" != "$last_addr" ]]; then
             echo "$site,$current_addr,$(date)" >> $output_file
+            if [ "$quiet_updates" -ne 1 ]; then
+                echo "$site,$current_addr,$(date)"
+            fi
         fi
     done < $site_list
 }
@@ -50,6 +58,7 @@ usage() {
     -f [ sitefile ]         list of sites to check [default=$site_list]
     -o [ outfile ]          output filename [default=$output_file]
     -p [ ping_host ]        ping host for connectivity test
+    -q                      quiet output, default reports changes to stdout
     -h                      help
 
 EOF
@@ -60,7 +69,7 @@ EOF
 #
 
 if [ "$#" -ne 0 ]; then
-    while getopts "f:o:p:h" opt; do
+    while getopts "f:o:p:qh" opt; do
         case $opt in
             "f")
                 site_list="$OPTARG"
@@ -75,6 +84,9 @@ if [ "$#" -ne 0 ]; then
                 echo "Option -$OPTARG requires an argument." >&2
                 usage
                 exit 1
+                ;;
+            "q" | *)
+                quiet_updates=1
                 ;;
             "h" | *)
                 usage
