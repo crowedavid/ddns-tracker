@@ -45,7 +45,7 @@ do_sites() {
         if [[ "$last_addr" == "missing" ]] || [[ "$current_addr" != "$last_addr" ]]; then
             echo "$site,$current_addr,$(date)" >> $output_file
             if [ "$quiet_updates" -ne 1 ]; then
-                echo "$site,$current_addr,$(date)"
+                echo -e "Address change for $site:\n    Old:\t$last_addr\n    New:\t$current_addr"
             fi
         fi
     done < $site_list
